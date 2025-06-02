@@ -1,0 +1,35 @@
+Practice 1: Thread Creation and Joining
+
+Create a simple program that spawns multiple threads to perform different tasks (e.g., one thread prints numbers, another prints letters)
+Practice using std::thread constructor with different callable types (functions, lambdas, function objects)
+Ensure proper joining of all threads before main() exits
+
+Practice 2: Thread Detachment
+
+Write a program that creates detached threads for background tasks
+Compare the behavior of joined vs detached threads
+Handle the case where the main thread might exit before detached threads complete
+
+Practice 3: RAII Thread Management
+
+Implement a thread wrapper class that automatically joins threads in its destructor
+Practice exception safety - ensure threads are properly cleaned up even when exceptions occur
+Try using std::jthread (C++20) if available, or create your own joining thread class
+
+Practice 4: Passing Arguments to Threads
+
+Create threads that accept various parameter types (by value, by reference, pointers)
+Practice using std::ref() and std::move() when passing arguments
+Handle the lifetime issues of objects passed to threads
+
+Practice 5: Thread Identification and Management
+
+Use std::this_thread::get_id() to identify threads
+Practice thread sleeping with std::this_thread::sleep_for()
+Experiment with std::thread::hardware_concurrency() to determine optimal thread count
+
+Practice 6: Exception Handling with Threads
+
+Write code that demonstrates what happens when a thread throws an unhandled exception
+Implement proper exception handling patterns for multi-threaded code
+Practice cleanup patterns when exceptions occur
