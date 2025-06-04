@@ -3,6 +3,9 @@
 #include <vector>
 #include <chrono>
 #include <string>
+#include <functional>
+#include <stdexcept>
+
 void short_sleep(unsigned int ms) {
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
@@ -51,7 +54,7 @@ void practice_1() {
     t3.join();
 }
 
-void bg_work(std::string task_name, unsigned duration) {
+void bg_work(const std::string& task_name, unsigned duration) {
     std::cout << task_name << " executing for " << duration/1000 << " second(s)" << std::endl;
     short_sleep(duration);
     std::cout << task_name << " complete." << std::endl;
@@ -84,10 +87,10 @@ public:
         }
     }
 
-    // copy constructor
+    // Move constructor
     ThreadGuard(ThreadGuard&& other) noexcept : t(std::move(other.t)) {}
 
-    // copy assignment
+    // Move assignment
     ThreadGuard& operator=(ThreadGuard&& other) noexcept {
         if (t.joinable()) {
             t.join();
@@ -95,6 +98,9 @@ public:
         t = std::move(other.t);
         return *this;
     }
+
+    ThreadGuard(const ThreadGuard& other) = delete;
+    ThreadGuard& operator=(const ThreadGuard& other) = delete;
 };
 
 void throw_except() {
@@ -123,9 +129,104 @@ void practice_3() {
     }
 }
 
+void print_data(int val, const std::string& str) {
+    std::cout << "Value: " << val << ", Text: " << str << std::endl;
+}
+
+void modify_data(int& val) {
+    val *= 2;
+}
+
+void process_vec(std::vector<int> vec) {
+    for (auto& v : vec) v *= 2;
+    std::cout << "Vector processed in thread (by value)." << std::endl;
+}
+
+void process_vec_ref(std::vector<int>& vec) {
+    for (auto& v : vec) v *= 2;
+    std::cout << "Vector processed in thread (by reference)." << std::endl;
+}
+
+void print_vec(const std::vector<int>& vec) {
+    for (auto& v : vec) {
+        std::cout << v << " ";
+    }
+    std::cout << std::endl;
+}
+
+class MoveOnlyObj {
+private:
+    std::unique_ptr<int> data;
+public:
+    // constructor
+    explicit MoveOnlyObj(int val) : data(std::make_unique<int>(val)) {}
+
+    // Move constructor
+    // Note: In general, never make Move constructors explicit
+    MoveOnlyObj(MoveOnlyObj&& other) : data(std::move(other.data)) {}
+
+    // Move assignment
+    MoveOnlyObj& operator=(MoveOnlyObj&& other) noexcept {
+        data = std::move(other.data);
+        return *this;
+    }
+
+    void print() const {
+        if (data) std::cout << "Data in object: " << *data << std::endl;
+    }
+    
+    // Disable copy assigment and constructors.
+    MoveOnlyObj(const MoveOnlyObj& other) = delete;
+    MoveOnlyObj& operator=(const MoveOnlyObj& other) = delete;
+};
+
+void print_obj(MoveOnlyObj obj) {
+    obj.print();
+}
+
+void print_unique_ptr(std::unique_ptr<int> p) {
+    std::cout << "Value in unique ptr: " << *p << std::endl;
+}
+
+void practice_4() {
+    std::cout << "\n=== Practice 4: Passing Arguments to Threads ===\n";
+    std::thread t1(print_data, 12, "some data");
+    t1.join();
+
+    int val = 3;
+    std::cout << "Value before modification in thread: " << val << std::endl;
+    std::thread t2(modify_data, std::ref(val));
+    t2.join();
+    std::cout << "Value after modification in thread: " << val << std::endl;
+
+    std::vector<int> vec1 = {1,2,3,4,5};
+    std::vector<int> vec2 = {1,2,3,4,5};
+
+    std::thread t3(process_vec, vec1);
+    t3.join();
+    
+    std::thread t4(process_vec_ref, std::ref(vec2));
+    t4.join();
+
+    std::cout << "Original vec1 after by-value processing: ";
+    print_vec(vec1);
+
+    std::cout << "Original vec2 after by-value processing: ";
+    print_vec(vec2);
+
+    std::unique_ptr<int> p(std::make_unique<int>(10));
+    std::thread t5(print_unique_ptr, std::move(p));
+    t5.join();
+
+    MoveOnlyObj obj(20);
+    std::thread t6(print_obj, std::move(obj));
+    t6.join();
+}
+
 int main() {
     std::cout << "Main running:\n";
     practice_1();
     practice_2();
     practice_3();
+    practice_4();
 }
