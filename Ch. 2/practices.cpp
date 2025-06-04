@@ -223,10 +223,45 @@ void practice_4() {
     t6.join();
 }
 
+void bg_work_with_id(unsigned work_num) {
+    unsigned duration = work_num*100;
+    std::cout << "Worker " << work_num <<", Thread ID=" << std::this_thread::get_id() << " executing for " << duration << " millisecond(s)" << std::endl;
+    short_sleep(duration);
+    std::cout << "Worker " << work_num <<", Thread ID=" << std::this_thread::get_id() << " complete." << std::endl;
+}
+
+void practice_5() {
+    std::cout << "\n=== Practice 5: Thread Identification ===\n";
+
+    std::cout << "Main thread ID: " << std::this_thread::get_id() << std::endl;
+
+    unsigned int num_threads(std::thread::hardware_concurrency());
+     // fallback if hardware_concurrency not supported;
+    if (num_threads == 0) {
+        num_threads = 2;
+        std::cout << "std::thread::hardware_concurrency not supported, setting num_thread=2" << std::endl;
+    } else {
+        std::cout << "Maximum hardware supported thread num=" << num_threads << std::endl;
+    }
+
+    std::vector<std::thread> threads;
+
+    for (unsigned i = 0; i < num_threads; ++i) {
+        threads.emplace_back(bg_work_with_id, i+1);
+    }
+
+    for (auto &t : threads) {
+        std::cout << "Created thread ID: " << t.get_id() << std::endl;
+    }
+
+    for (auto &t : threads) t.join();
+}
+
 int main() {
     std::cout << "Main running:\n";
     practice_1();
     practice_2();
     practice_3();
     practice_4();
+    practice_5();
 }
