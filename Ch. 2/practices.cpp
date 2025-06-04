@@ -2,7 +2,7 @@
 #include <thread>
 #include <vector>
 #include <chrono>
-
+#include <string>
 void short_sleep(unsigned int ms) {
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
@@ -38,6 +38,7 @@ std::thread functor_thread() {
 }
 
 void practice_1() {
+    std::cout << "\n=== Practice 1: Basic Thread Creation ===\n";
     std::thread t1, t2, t3;
     t1 = func_thread();
     short_sleep(100);
@@ -50,7 +51,81 @@ void practice_1() {
     t3.join();
 }
 
+void bg_work(std::string task_name, unsigned duration) {
+    std::cout << task_name << " executing for " << duration/1000 << " second(s)" << std::endl;
+    short_sleep(duration);
+    std::cout << task_name << " complete." << std::endl;
+}
+
+void practice_2() {
+    std::cout << "\n=== Practice 2: Thread Detachment ===\n";
+    std::thread t1(bg_work, "Task 1", 1000);
+    std::thread t2(bg_work, "Task 2", 2000);
+
+    t1.detach();
+    t2.detach();
+
+    std::cout << "Main thread about to sleep for 3 seconds." << std::endl;
+    short_sleep(3000); 
+    std::cout << "Main thread exiting." << std::endl;
+}
+
+class ThreadGuard {
+private:
+    std::thread t;
+public:
+    // constructor
+    ThreadGuard(std::thread _t) noexcept : t(std::move(_t)) {}
+    
+    // destructor
+    ~ThreadGuard() {
+        if (t.joinable()) {
+            t.join();
+        }
+    }
+
+    // copy constructor
+    ThreadGuard(ThreadGuard&& other) noexcept : t(std::move(other.t)) {}
+
+    // copy assignment
+    ThreadGuard& operator=(ThreadGuard&& other) noexcept {
+        if (t.joinable()) {
+            t.join();
+        }
+        t = std::move(other.t);
+        return *this;
+    }
+};
+
+void throw_except() {
+    throw std::runtime_error("Some risky operation.");
+}
+
+void practice_3() {
+    std::cout << "\n=== Practice 3: RAII Thread Management ===\n";
+
+    try {
+        // Thread guard gets deleted first when practice_3 goes out of scope.
+        // so ThreadGuard's destructor joins t safely.
+        // std::thread t(bg_work, "Worker task", 3000);
+        // ThreadGuard guard(std::move(t));
+        ThreadGuard guard(std::thread(bg_work, "Worker task", 3000));
+
+        // exception thrown, guard goes out of scope, so thread joins before we go to the except block.
+        // throw_except();
+
+        std::cout << "Main doing some work." << std::endl;
+
+        std::cout << "Work completed successfully\n";
+    } catch (const std::exception& e) {
+        std::cout << "Exception caught: " << e.what() << std::endl;
+        std::cout << "Thread was safely joined by ThreadGuard" << std::endl;
+    }
+}
+
 int main() {
     std::cout << "Main running:\n";
     practice_1();
+    practice_2();
+    practice_3();
 }
