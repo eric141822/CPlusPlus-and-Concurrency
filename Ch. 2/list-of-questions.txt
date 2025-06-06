@@ -27,9 +27,3 @@ Practice 5: Thread Identification and Management
 Use std::this_thread::get_id() to identify threads
 Practice thread sleeping with std::this_thread::sleep_for()
 Experiment with std::thread::hardware_concurrency() to determine optimal thread count
-
-Practice 6: Exception Handling with Threads
-
-Write code that demonstrates what happens when a thread throws an unhandled exception
-Implement proper exception handling patterns for multi-threaded code
-Practice cleanup patterns when exceptions occur

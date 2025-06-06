@@ -54,6 +54,11 @@ void practice_1() {
     t3.join();
 }
 
+// Practice 2: Thread Detachment
+
+// Write a program that creates detached threads for background tasks
+// Compare the behavior of joined vs detached threads
+// Handle the case where the main thread might exit before detached threads complete
 void bg_work(const std::string& task_name, unsigned duration) {
     std::cout << task_name << " executing for " << duration/1000 << " second(s)" << std::endl;
     short_sleep(duration);
@@ -73,6 +78,11 @@ void practice_2() {
     std::cout << "Main thread exiting." << std::endl;
 }
 
+// Practice 3: RAII Thread Management
+
+// Implement a thread wrapper class that automatically joins threads in its destructor
+// Practice exception safety - ensure threads are properly cleaned up even when exceptions occur
+// Try using std::jthread (C++20)
 class ThreadGuard {
 private:
     std::thread t;
@@ -125,7 +135,18 @@ void practice_3() {
         std::cout << "Work completed successfully\n";
     } catch (const std::exception& e) {
         std::cout << "Exception caught: " << e.what() << std::endl;
-        std::cout << "Thread was safely joined by ThreadGuard" << std::endl;
+        std::cout << "Thread was safely joined by ThreadGuard." << std::endl;
+    }
+
+    try {
+        std::jthread(bg_work, "jthread task", 3000);
+        throw_except();
+        std::cout << "Main doing some more work." << std::endl;
+
+        std::cout << "Work completed successfully\n"; 
+    } catch (const std::exception& e) {
+        std::cout << "Exception caught: " << e.what() << std::endl;
+        std::cout << "jthread automatcially joined safely." << std::endl;
     }
 }
 
